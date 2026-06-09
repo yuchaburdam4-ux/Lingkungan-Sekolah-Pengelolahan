@@ -1,0 +1,1748 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Eco School Challenge - Pengelolaan Sampah Sekolah</title>
+    <!-- Tailwind CSS untuk Desain Responsif & Modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Poppins & Plus Jakarta Sans -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- FontAwesome untuk Icon yang Menarik -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', 'Poppins', sans-serif;
+            background-color: #f0fdf4; /* Light green background */
+            overflow-x: hidden;
+        }
+
+        /* Animasi Daun Jatuh */
+        .leaf-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            overflow: hidden;
+        }
+        .leaf {
+            position: absolute;
+            display: block;
+            list-style: none;
+            width: 20px;
+            height: 20px;
+            background: #22c55e;
+            opacity: 0.15;
+            bottom: -120px;
+            border-radius: 50px 0 50px 0;
+            animation: animateLeaf 15s linear infinite;
+        }
+        @keyframes animateLeaf {
+            0% {
+                transform: translateY(0) rotate(0deg);
+                opacity: 0.4;
+                border-radius: 50px 0 50px 0;
+            }
+            100% {
+                transform: translateY(-110vh) rotate(720deg);
+                opacity: 0;
+                border-radius: 50px 0 50px 0;
+            }
+        }
+
+        /* Glassmorphism Card Style */
+        .glass-card {
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(220, 252, 231, 0.6);
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 30px rgba(34, 197, 94, 0.15);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #86efac;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #22c55e;
+        }
+
+        /* Animasi Game & Interaksi */
+        .game-item {
+            transition: all 0.2s ease;
+        }
+        .game-item:active {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+<body class="relative min-h-screen pb-12">
+
+    <!-- Efek Daun Berguguran -->
+    <div class="leaf-container" id="leafContainer"></div>
+
+    <!-- Canvas Konfeti untuk Selebrasi -->
+    <canvas id="confettiCanvas" class="fixed inset-0 pointer-events-none z-50 w-full h-full hidden"></canvas>
+
+    <!-- Header / Navbar Utama -->
+    <header class="bg-gradient-to-r from-emerald-600 via-teal-600 to-green-600 text-white shadow-xl relative overflow-hidden">
+        <div class="absolute inset-0 bg-[radial-gradient(circle_at_top_right,_var(--tw-gradient-stops))] from-white/10 to-transparent pointer-events-none"></div>
+        <div class="max-w-7xl mx-auto px-4 py-5 flex flex-col md:flex-row justify-between items-center gap-4 relative z-10">
+            <div class="flex items-center gap-3">
+                <div class="bg-white/20 p-2.5 rounded-2xl backdrop-blur-md">
+                    <i class="fa-solid fa-leaf text-3xl text-green-300 animate-pulse"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black tracking-tight flex items-center gap-2">
+                        ECO SCHOOL <span class="bg-yellow-400 text-emerald-950 px-2.5 py-0.5 rounded-lg text-sm font-extrabold shadow-sm">CHALLENGE</span>
+                    </h1>
+                    <p class="text-xs text-green-100 font-medium">Ubah Kebiasaan Kecil Menjadi Dampak Besar Bagi Sekolah</p>
+                </div>
+            </div>
+            
+            <!-- Widget User & Status -->
+            <div id="headerUserWidget" class="hidden flex items-center gap-4 bg-white/10 p-2 pr-4 rounded-full backdrop-blur-md border border-white/10">
+                <div class="relative">
+                    <img id="userAvatar" src="" alt="Avatar" class="w-12 h-12 rounded-full border-2 border-yellow-300 bg-white p-1 object-cover">
+                    <span class="absolute -bottom-1 -right-1 bg-yellow-400 text-xs px-1.5 py-0.2 rounded-full font-bold text-emerald-900 border border-white" id="userLevelBadgeMini">🌱</span>
+                </div>
+                <div class="text-left">
+                    <div class="text-xs text-green-200">Selamat datang,</div>
+                    <div class="font-bold text-sm text-white max-w-[120px] truncate" id="headerUserName">Siswa Hebat</div>
+                    <div class="text-[10px] text-yellow-300 font-semibold" id="headerUserClass">Kelas X-1</div>
+                </div>
+                <button id="logoutBtnHeader" class="ml-2 p-2 hover:bg-red-500/20 text-white hover:text-red-300 rounded-full transition-colors" title="Keluar">
+                    <i class="fa-solid fa-right-from-bracket"></i>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- MOTIVASI HARIAN -->
+    <div class="bg-amber-50 border-b border-amber-100 py-2.5 px-4 text-center">
+        <p class="text-sm font-medium text-amber-800 flex items-center justify-center gap-2">
+            <i class="fa-solid fa-lightbulb text-amber-500 animate-bounce"></i>
+            <span id="dailyQuote">"Setiap aksi kecilmu hari ini, menyelamatkan dunia esok hari."</span>
+        </p>
+    </div>
+
+    <!-- AREA UTAMA -->
+    <main class="max-w-7xl mx-auto px-4 mt-6">
+
+        <!-- SINKRONISASI AWAN / LOADING STATE -->
+        <div id="cloudLoadingSpinner" class="flex flex-col items-center justify-center py-12 text-emerald-700 font-semibold">
+            <i class="fa-solid fa-circle-notch text-4xl animate-spin mb-3"></i>
+            <p>Menghubungkan ke Papan Peringkat Sekolah...</p>
+        </div>
+
+        <!-- HALAMAN LOGIN -->
+        <section id="loginSection" class="hidden max-w-md mx-auto my-12 bg-white rounded-3xl p-8 shadow-2xl border border-green-100 relative overflow-hidden">
+            <div class="absolute -top-16 -right-16 w-32 h-32 bg-green-100 rounded-full blur-2xl"></div>
+            <div class="absolute -bottom-16 -left-16 w-32 h-32 bg-teal-100 rounded-full blur-2xl"></div>
+            
+            <div class="text-center relative z-10 mb-6">
+                <div class="inline-flex bg-gradient-to-tr from-green-100 to-emerald-200 p-4 rounded-3xl mb-4 text-green-600 shadow-inner">
+                    <i class="fa-solid fa-seedling text-5xl"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-slate-800">Mulai Perjalanan Ekomu!</h2>
+                <p class="text-slate-500 text-sm mt-1">Gabung bersama ratusan siswa agen perubahan lingkungan</p>
+            </div>
+
+            <form id="loginForm" class="space-y-4 relative z-10">
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-2">Pilih Avatar Karakter</label>
+                    <div class="grid grid-cols-4 gap-2" id="avatarPicker">
+                        <!-- Generasi avatar dinamis -->
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Nama Lengkap</label>
+                    <input type="text" id="inputName" required placeholder="Contoh: Budi Santoso" 
+                           class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-800">
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-slate-700 mb-1">Kelas</label>
+                    <select id="inputClass" required 
+                            class="w-full px-4 py-2.5 rounded-xl border border-slate-200 focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 outline-none transition-all text-slate-800 bg-white">
+                        <option value="">Pilih Kelas Anda</option>
+                        <optgroup label="Kelas VII">
+                            <option value="7A">7-A</option>
+                            <option value="7B">7-B</option>
+                            <option value="7C">7-C</option>
+                        </optgroup>
+                        <optgroup label="Kelas VIII">
+                            <option value="8A">8-A</option>
+                            <option value="8B">8-B</option>
+                            <option value="8C">8-C</option>
+                        </optgroup>
+                        <optgroup label="Kelas IX">
+                            <option value="9A">9-A</option>
+                            <option value="9B">9-B</option>
+                            <option value="9C">9-C</option>
+                        </optgroup>
+                    </select>
+                </div>
+
+                <button type="submit" 
+                        class="w-full bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-bold py-3 px-6 rounded-xl shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all flex items-center justify-center gap-2">
+                    Masuk ke Tantangan <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+        </section>
+
+
+        <!-- DASHBOARD UTAMA (HIDDEN SECARA DEFAULT) -->
+        <section id="dashboardSection" class="hidden space-y-6">
+            
+            <!-- Sambutan Banner & Target Bulanan -->
+            <div class="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-3xl p-6 md:p-8 text-white shadow-xl relative overflow-hidden">
+                <div class="absolute right-0 bottom-0 top-0 opacity-10 w-1/3 bg-[radial-gradient(circle_at_bottom_right,_var(--tw-gradient-stops))] from-white to-transparent"></div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center relative z-10">
+                    <div class="md:col-span-2">
+                        <span class="bg-white/20 text-xs font-bold uppercase tracking-wider px-3 py-1 rounded-full text-green-100">Selamat datang kembali!</span>
+                        <h2 class="text-2xl md:text-3xl font-extrabold mt-2" id="welcomeUserMessage">Selamat datang! Mari jaga kebersihan sekolah hari ini.</h2>
+                        <p class="text-green-100 text-sm mt-2 max-w-xl">Ambil bagian dalam aksi peduli lingkungan hari ini, isi checklist harian Anda, selesaikan misi khusus dan jadilah agen perubahan sekolah terbaik.</p>
+                    </div>
+                    
+                    <!-- Progress Target Bulanan -->
+                    <div class="bg-white/10 rounded-2xl p-4 border border-white/10">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-xs font-semibold text-green-200">Target Poin Pribadi Bulan Ini</span>
+                            <span class="text-xs font-bold text-yellow-300" id="monthlyProgressText">0 / 150 Poin</span>
+                        </div>
+                        <div class="w-full bg-emerald-950/40 rounded-full h-3 mb-2 overflow-hidden">
+                            <div id="monthlyProgressBar" class="bg-gradient-to-r from-yellow-300 to-green-400 h-full rounded-full transition-all duration-1000" style="width: 0%"></div>
+                        </div>
+                        <p class="text-[10px] text-green-100 italic">Dapatkan lencana eksklusif setelah mencapai target bulanan!</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- GRID STATS UTAMA -->
+            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <!-- Card Poin -->
+                <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+                    <div class="p-4 bg-yellow-100 text-yellow-600 rounded-2xl">
+                        <i class="fa-solid fa-star text-2xl animate-pulse"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block font-medium">Total Poin</span>
+                        <span class="text-2xl font-extrabold text-slate-800" id="statPoints">0</span>
+                    </div>
+                </div>
+
+                <!-- Card Level -->
+                <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+                    <div class="p-4 bg-green-100 text-green-600 rounded-2xl">
+                        <i class="fa-solid fa-medal text-2xl"></i>
+                    </div>
+                    <div class="w-full">
+                        <span class="text-xs text-slate-500 block font-medium">Level Eco Hero</span>
+                        <span class="text-md font-bold text-emerald-700 block leading-tight" id="statLevel">Eco Seedling 🌱</span>
+                        <div class="w-full bg-slate-100 h-1.5 rounded-full mt-1.5 overflow-hidden">
+                            <div id="levelProgressBar" class="bg-emerald-500 h-full transition-all" style="width: 0%"></div>
+                        </div>
+                        <span class="text-[10px] text-slate-400" id="nextLevelText">0 ke level berikutnya</span>
+                    </div>
+                </div>
+
+                <!-- Card Hari Aktif -->
+                <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+                    <div class="p-4 bg-blue-100 text-blue-600 rounded-2xl">
+                        <i class="fa-solid fa-calendar-check text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block font-medium">Hari Aktif</span>
+                        <span class="text-2xl font-extrabold text-slate-800" id="statActiveDays">0 Hari</span>
+                    </div>
+                </div>
+
+                <!-- Card Misi Mingguan -->
+                <div class="glass-card rounded-2xl p-5 flex items-center gap-4">
+                    <div class="p-4 bg-purple-100 text-purple-600 rounded-2xl">
+                        <i class="fa-solid fa-clipboard-list text-2xl"></i>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block font-medium">Progress Minggu Ini</span>
+                        <span class="text-lg font-bold text-slate-800 block" id="statWeeklyProgress">Belum Selesai</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- BAGIAN UTAMA KONTEN: DUA KOLOM -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                
+                <!-- KOLOM KIRI (Aksi Harian, Kalender, Misi Khusus) -->
+                <div class="lg:col-span-2 space-y-6">
+                    
+                    <!-- 1. TANTANGAN HARIAN -->
+                    <div class="bg-white rounded-3xl p-6 shadow-md border border-green-100">
+                        <div class="flex justify-between items-center mb-4">
+                            <div>
+                                <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                    <i class="fa-solid fa-circle-check text-emerald-500"></i> Tantangan Harian
+                                </h3>
+                                <p class="text-xs text-slate-500 mt-1">Dapatkan 1 poin untuk setiap aksi (Maksimal 5 poin per hari)</p>
+                            </div>
+                            <span class="text-xs font-semibold bg-emerald-50 text-emerald-700 px-3 py-1.5 rounded-full" id="dailyLimitIndicator">0 / 5 Terisi</span>
+                        </div>
+
+                        <!-- Daftar Checklist -->
+                        <div class="space-y-3" id="challengesList">
+                            <!-- Diisi dinamis -->
+                        </div>
+                    </div>
+
+                    <!-- 2. MINI GAME PILAH SAMPAH -->
+                    <div class="bg-gradient-to-tr from-sky-50 to-emerald-50 rounded-3xl p-6 shadow-md border border-sky-100">
+                        <div class="mb-4">
+                            <span class="bg-sky-100 text-sky-800 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Mini Game</span>
+                            <h3 class="text-lg font-bold text-slate-800 mt-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-recycle text-emerald-600"></i> Pilah Sampah Sekolah
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Ketuk objek sampah di bawah, lalu ketuk tempat sampah yang sesuai! (+2 Poin jika benar)</p>
+                        </div>
+
+                        <div class="bg-white/80 backdrop-blur-md rounded-2xl p-4 border border-sky-100">
+                            <!-- Area Objek yang akan dipilah -->
+                            <div class="text-center py-6 min-h-[120px] flex flex-col justify-center items-center" id="gameObjectArea">
+                                <!-- Generasi dinamis objek -->
+                            </div>
+
+                            <!-- Area Drop / Pilihan Tempat Sampah -->
+                            <div class="grid grid-cols-3 md:grid-cols-5 gap-3 mt-4" id="wasteBinsContainer">
+                                <!-- Generasi dinamis tempat sampah -->
+                            </div>
+                        </div>
+                        <div id="gameExplanationBox" class="mt-3 p-3 bg-yellow-50 text-yellow-800 rounded-xl text-xs hidden border border-yellow-100"></div>
+                    </div>
+
+                    <!-- 3. EDUKASI SAMPAH INTERAKTIF (Buku Digital) -->
+                    <div class="bg-white rounded-3xl p-6 shadow-md border border-green-100">
+                        <div class="mb-4">
+                            <span class="bg-emerald-100 text-emerald-800 text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full">Edukasi Sampah</span>
+                            <h3 class="text-lg font-bold text-slate-800 mt-1.5 flex items-center gap-2">
+                                <i class="fa-solid fa-book-open text-emerald-600"></i> Ensiklopedia Hijau
+                            </h3>
+                            <p class="text-xs text-slate-500 mt-1">Kenali jenis-jenis sampah dan fakta mengejutkan tentangnya.</p>
+                        </div>
+
+                        <!-- Tab menu kategori -->
+                        <div class="flex overflow-x-auto gap-2 pb-2 mb-4" id="eduTabs">
+                            <!-- Dinamis -->
+                        </div>
+
+                        <!-- Konten Buku -->
+                        <div class="bg-emerald-50/50 rounded-2xl p-5 border border-emerald-100 flex flex-col md:flex-row gap-6 items-center" id="eduContent">
+                            <!-- Dinamis -->
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- KOLOM KANAN (Kalender, Badges, Leaderboard, Misi Khusus) -->
+                <div class="space-y-6">
+                    
+                    <!-- 1. KALENDER KEBERSIHAN -->
+                    <div class="bg-white rounded-3xl p-6 shadow-md border border-green-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-calendar-days text-emerald-500"></i> Kalender Kebersihan
+                        </h3>
+                        <p class="text-xs text-slate-500 mb-4">Hari berwarna hijau dengan daun menunjukkan hari kamu aktif menjaga kebersihan sekolah.</p>
+                        
+                        <div class="bg-slate-50 rounded-2xl p-4">
+                            <!-- Nama Bulan & Navigasi -->
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="font-bold text-slate-700 text-sm" id="calendarMonth">Juni 2026</span>
+                                <span class="text-xs text-emerald-600 font-semibold" id="activeStreak">Streak: 0 Hari 🔥</span>
+                            </div>
+                            
+                            <!-- Grid Hari -->
+                            <div class="grid grid-cols-7 gap-1.5 text-center text-xs text-slate-500 font-semibold mb-2">
+                                <div>M</div><div>S</div><div>S</div><div>R</div><div>K</div><div>J</div><div>S</div>
+                            </div>
+                            <div class="grid grid-cols-7 gap-1.5" id="calendarDays">
+                                <!-- Grid dinamis -->
+                            </div>
+                        </div>
+
+                        <!-- Info Bonus Mingguan -->
+                        <div class="mt-4 p-3 bg-gradient-to-r from-emerald-500/10 to-teal-500/10 rounded-2xl border border-emerald-500/20 text-xs text-slate-700 space-y-1.5">
+                            <span class="font-bold text-emerald-800 block mb-1">🎁 Bonus Konsistensi Streak:</span>
+                            <div class="flex justify-between"><span>7 Hari Beruntun</span><span class="font-bold text-emerald-700">+5 Poin</span></div>
+                            <div class="flex justify-between"><span>14 Hari Beruntun</span><span class="font-bold text-emerald-700">+10 Poin</span></div>
+                            <div class="flex justify-between"><span>30 Hari Beruntun</span><span class="font-bold text-emerald-700">+25 Poin</span></div>
+                        </div>
+                    </div>
+
+                    <!-- 2. BADGE PRESTASI -->
+                    <div class="bg-white rounded-3xl p-6 shadow-md border border-green-100">
+                        <h3 class="text-lg font-bold text-slate-800 mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-award text-yellow-500"></i> Lencana Prestasi
+                        </h3>
+                        <p class="text-xs text-slate-500 mb-4">Lencana eksklusif yang diperoleh dari aksi ekologis Anda.</p>
+
+                        <div class="grid grid-cols-5 gap-3" id="badgesContainer">
+                            <!-- Generasi Badge Dinamis -->
+                        </div>
+                    </div>
+
+                    <!-- 3. MISI KHUSUS MINGGUAN -->
+                    <div class="bg-gradient-to-br from-yellow-50 to-amber-50 rounded-3xl p-6 shadow-md border border-amber-200">
+                        <h3 class="text-lg font-bold text-amber-900 flex items-center gap-2">
+                            <i class="fa-solid fa-bullseye text-amber-600"></i> Misi Khusus Mingguan
+                        </h3>
+                        <p class="text-xs text-amber-700 mt-1">Dapatkan bonus besar dengan menyelesaikan misi berikut!</p>
+
+                        <div class="bg-white rounded-2xl p-4 border border-amber-200/60 mt-4 space-y-3">
+                            <div class="flex items-start gap-3">
+                                <div class="bg-amber-100 p-2.5 rounded-xl text-amber-600 mt-0.5">
+                                    <i class="fa-solid fa-mug-hot text-lg"></i>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="text-xs font-bold text-slate-800">Membawa Tumbler & Kotak Makan</h4>
+                                    <p class="text-[10px] text-slate-500 mt-0.5">Membantu mengurangi sampah plastik sekali pakai di kantin sekolah.</p>
+                                    <div class="flex items-center justify-between mt-2">
+                                        <span class="text-xs font-bold text-amber-600">+10 Poin</span>
+                                        <button id="claimMissionBtn" class="bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1 rounded-lg transition-colors shadow-sm">
+                                            Klaim Selesai
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 4. LEADERBOARD SEKOLAH -->
+                    <div class="bg-white rounded-3xl p-6 shadow-md border border-green-100 overflow-hidden relative">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-bold text-slate-800 flex items-center gap-2">
+                                <i class="fa-solid fa-trophy text-yellow-500 animate-bounce"></i> Papan Peringkat
+                            </h3>
+                            <span id="cloudStatusBadge" class="text-[9px] font-bold bg-emerald-100 text-emerald-800 px-2 py-1 rounded-full flex items-center gap-1">
+                                <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Awan Aktif
+                            </span>
+                        </div>
+
+                        <!-- Message if user is #1 -->
+                        <div id="kingMessage" class="hidden p-3 bg-gradient-to-r from-yellow-100 to-amber-200 text-amber-900 text-xs font-bold rounded-2xl mb-3 text-center border border-amber-300">
+                            👑 Selamat! Kamu adalah Eco Hero terbaik minggu ini! 🏆
+                        </div>
+
+                        <div class="space-y-2.5 max-h-[350px] overflow-y-auto pr-1" id="leaderboardList">
+                            <!-- Diisi dinamis -->
+                        </div>
+                    </div>
+
+                    <!-- 5. STATISTIK GLOBAL SEKOLAH -->
+                    <div class="bg-gradient-to-tr from-emerald-900 to-teal-900 rounded-3xl p-6 text-white shadow-xl">
+                        <h3 class="text-md font-bold mb-1 flex items-center gap-2">
+                            <i class="fa-solid fa-circle-nodes text-green-400"></i> Kontribusi Global Sekolah
+                        </h3>
+                        <p class="text-[10px] text-emerald-200 mb-4">Gabungan aksi nyata seluruh siswa di sekolah</p>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-white/10 p-3 rounded-2xl border border-white/5">
+                                <span class="text-[10px] text-emerald-300 block">Total Poin Kolektif</span>
+                                <span class="text-lg font-extrabold text-white" id="globalTotalPoints">0 Poin</span>
+                            </div>
+                            <div class="bg-white/10 p-3 rounded-2xl border border-white/5">
+                                <span class="text-[10px] text-emerald-300 block">Siswa Aktif</span>
+                                <span class="text-lg font-extrabold text-white" id="globalActiveStudents">0 Siswa</span>
+                            </div>
+                            <div class="bg-white/10 p-3 rounded-2xl border border-white/5">
+                                <span class="text-[10px] text-emerald-300 block">Checklist Hari Ini</span>
+                                <span class="text-lg font-extrabold text-white" id="globalActiveAksi">0 Aksi</span>
+                            </div>
+                            <div class="bg-white/10 p-3 rounded-2xl border border-white/5">
+                                <span class="text-[10px] text-emerald-300 block">Sampah Terpilah</span>
+                                <span class="text-lg font-extrabold text-white" id="globalWeight">0 Kg</span>
+                            </div>
+                        </div>
+
+                        <!-- Progress Sekolah Ke Eco-Certificate -->
+                        <div class="mt-4">
+                            <div class="flex justify-between text-[10px] text-emerald-200 mb-1">
+                                <span>Target Akreditasi Eco-School</span>
+                                <span class="font-bold" id="accreditationPercentage">0%</span>
+                            </div>
+                            <div class="w-full bg-emerald-950 rounded-full h-2 overflow-hidden">
+                                <div id="accreditationBar" class="bg-gradient-to-r from-emerald-400 to-yellow-300 h-full rounded-full" style="width: 0%"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ADMIN PANEL (HANYA UNTUK PENGEMBANG / SIMULASI GURU) -->
+                    <div id="adminPanel" class="bg-slate-50 rounded-3xl p-5 border border-slate-200 transition-all">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="text-xs font-bold text-slate-600"><i class="fa-solid fa-user-shield"></i> Panel Guru / Admin</span>
+                            <span class="text-[10px] bg-slate-200 text-slate-700 px-2 py-0.5 rounded-full font-medium">Pengontrol</span>
+                        </div>
+                        <div class="grid grid-cols-1 gap-2">
+                            <button id="resetAllCloudBtn" class="w-full bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 font-bold text-xs py-2.5 px-3 rounded-xl transition-all">
+                                <i class="fa-solid fa-trash-can"></i> Hapus Semua Data & Bersihkan Papan Peringkat
+                            </button>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- FOOTER -->
+    <footer class="mt-12 text-center text-slate-400 text-xs">
+        <p>&copy; 2026 Eco School Challenge. Hak Cipta Dilindungi.</p>
+        <p class="mt-1">Dibuat khusus untuk mewujudkan lingkungan sekolah bersih dan berkelanjutan.</p>
+    </footer>
+
+    <!-- MODAL POPUP PRESTASI / UNLOCK BADGE -->
+    <div id="badgeModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-8 max-w-sm w-full text-center shadow-2xl border border-yellow-200 transform scale-95 opacity-0 transition-all duration-300" id="badgeModalContent">
+            <div class="w-24 h-24 bg-gradient-to-tr from-yellow-100 to-amber-200 rounded-full flex items-center justify-center mx-auto mb-4 text-4xl shadow-inner animate-bounce">
+                🌱
+            </div>
+            <span class="text-xs font-bold text-amber-600 uppercase tracking-wider block mb-1">Lencana Baru Terbuka!</span>
+            <h4 class="text-2xl font-black text-slate-800 mb-2" id="modalBadgeName">Pemula Hijau</h4>
+            <p class="text-slate-500 text-sm mb-6" id="modalBadgeDesc">Selamat! Kamu berhasil memulai langkah pertama menjaga lingkungan sekolah.</p>
+            <button id="closeBadgeModalBtn" class="w-full bg-emerald-500 hover:bg-emerald-600 text-white font-bold py-3 px-6 rounded-2xl shadow-lg transition-all">
+                Luar Biasa!
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP NOTIFIKASI KUSTOM -->
+    <div id="alertModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="alertModalContent">
+            <div id="alertIconArea" class="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                🔔
+            </div>
+            <h4 class="text-lg font-bold text-slate-800 mb-1" id="alertTitle">Notifikasi</h4>
+            <p class="text-slate-500 text-xs mb-5" id="alertMessage">Detail pesan di sini...</p>
+            <button id="closeAlertBtn" class="w-full bg-slate-800 hover:bg-slate-950 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all text-xs">
+                Mengerti
+            </button>
+        </div>
+    </div>
+
+    <!-- MODAL POPUP KONFIRMASI KUSTOM -->
+    <div id="confirmModal" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full text-center shadow-2xl transform scale-95 opacity-0 transition-all duration-300" id="confirmModalContent">
+            <div class="w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl">
+                ⚠️
+            </div>
+            <h4 class="text-lg font-bold text-slate-800 mb-1" id="confirmTitle">Konfirmasi</h4>
+            <p class="text-slate-500 text-xs mb-5" id="confirmMessage">Apakah Anda yakin ingin melanjutkan aksi ini?</p>
+            <div class="grid grid-cols-2 gap-3">
+                <button id="cancelConfirmBtn" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold py-2.5 px-4 rounded-xl transition-all text-xs">
+                    Batal
+                </button>
+                <button id="confirmYesButton" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-xl shadow-sm transition-all text-xs">
+                    Ya, Lanjutkan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- FIREBASE SDK & UNIFIED LOGIC MODULE -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, getDoc, setDoc, deleteDoc, onSnapshot, collection, getDocs, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // === KONFIGURASI DATABASE GOOGLE FIREBASE ===
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'eco-school-challenge-real-rank';
+        
+        const defaultFirebaseConfig = {
+            apiKey: "AIzaSyDummyKeyForPreviewTestingOnly",
+            authDomain: "eco-challenge-preview.firebaseapp.com",
+            projectId: "eco-challenge-preview",
+            storageBucket: "eco-challenge-preview.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:1234:web:1234"
+        };
+
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : defaultFirebaseConfig;
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+
+        let db, auth;
+        let isFirebaseInitialized = false;
+
+        try {
+            const app = initializeApp(firebaseConfig);
+            db = getFirestore(app);
+            auth = getAuth(app);
+            isFirebaseInitialized = true;
+        } catch (e) {
+            console.error("Gagal menginisialisasi Firebase.", e);
+        }
+
+        // === GLOBAL STATE ===
+        const MOTIVATIONS = [
+            "Lingkungan bersih dimulai dari tindakan kecil.",
+            "Satu sampah yang kamu ambil hari ini dapat membuat sekolah lebih nyaman.",
+            "Jangan biarkan bumi menangis karena kelalaian kita membuang sampah.",
+            "Daur ulang hari ini untuk menyelamatkan hari esok.",
+            "Bawa tumblermu, sayangi alammu, kurangi sampah plastik kantin!",
+            "Eco Hero tidak memakai jubah, mereka memakai kesadaran lingkungan."
+        ];
+
+        const AVATARS = [
+            { id: 'panda', emoji: '🐼', name: 'Panda Hijau' },
+            { id: 'koala', emoji: '🐨', name: 'Koala Eko' },
+            { id: 'fox', emoji: '🦊', name: 'Rubah Cerdas' },
+            { id: 'tiger', emoji: '🐯', name: 'Harimau Tangguh' },
+            { id: 'rabbit', emoji: '🐰', name: 'Kelinci Bersih' },
+            { id: 'bear', emoji: '🐻', name: 'Beruang Rimba' },
+            { id: 'monkey', emoji: '🐵', name: 'Monyet Ceria' },
+            { id: 'owl', emoji: '🦉', name: 'Burung Hantu Bijak' }
+        ];
+
+        const CHALLENGES_TEMPLATE = [
+            { id: 'plastic', text: 'Memungut & memilah sampah plastik di sekolah' },
+            { id: 'paper', text: 'Mengumpulkan sampah kertas/buku bekas' },
+            { id: 'organic', text: 'Membuang sampah daun/organik ke lubang biopori/kompos' },
+            { id: 'bin', text: 'Membuang sampah pada tempatnya dengan benar' },
+            { id: 'share', text: 'Mengajak 3 teman menjaga kebersihan hari ini' }
+        ];
+
+        const EDUCATION_BOOK = [
+            {
+                id: 'plastic',
+                name: 'Sampah Plastik',
+                icon: '🥤',
+                desc: 'Plastik terbuat dari minyak bumi dan sulit diurai oleh mikroorganisme tanah.',
+                fact: 'Dibutuhkan sekitar 10 barel minyak bumi hanya untuk memproduksi kantong plastik global setiap tahun.',
+                time: '±450 tahun',
+                color: 'from-blue-500 to-indigo-600'
+            },
+            {
+                id: 'paper',
+                name: 'Sampah Kertas',
+                icon: '📄',
+                desc: 'Kertas berasal dari serat pohon. Membuang kertas sembarangan berarti mempercepat penebangan hutan.',
+                fact: 'Setiap 1 ton kertas yang didaur ulang menyelamatkan sekitar 17 pohon dewasa.',
+                time: '2 - 6 minggu',
+                color: 'from-yellow-500 to-amber-600'
+            },
+            {
+                id: 'metal',
+                name: 'Sampah Kaleng',
+                icon: '🥫',
+                desc: 'Kaleng aluminium atau besi sangat tahan lama tetapi dapat didaur ulang tanpa batas waktu.',
+                fact: 'Mendaur ulang kaleng aluminium menghemat 95% energi dibanding membuat baru dari tambang.',
+                time: '±200 tahun',
+                color: 'from-slate-400 to-slate-600'
+            },
+            {
+                id: 'glass',
+                name: 'Sampah Kaca',
+                icon: '🍾',
+                desc: 'Kaca terbuat dari pasir silika dan sangat stabil di alam liar sehingga hampir tidak pernah terurai secara alami.',
+                fact: 'Kaca dapat dilelehkan kembali dan didaur ulang menjadi botol baru berkali-kali tanpa mengurangi kualitas.',
+                time: 'Lebih dari 1 juta tahun',
+                color: 'from-emerald-400 to-teal-600'
+            },
+            {
+                id: 'organic',
+                name: 'Sampah Organik',
+                icon: '🍌',
+                desc: 'Sampah sisa makanan dan tanaman yang mudah terurai dan dapat diubah menjadi pupuk kompos yang subur.',
+                fact: 'Sampah organik di TPA menghasilkan gas metana yang berkontribusi kuat pada efek rumah kaca jika tidak dikompos.',
+                time: '2 - 5 minggu',
+                color: 'from-green-500 to-emerald-700'
+            },
+            {
+                id: 'ewaste',
+                name: 'Sampah Elektronik',
+                icon: '🔋',
+                desc: 'Baterai, kabel, HP rusak mengandung logam berat beracun seperti timbal dan merkuri yang merusak tanah.',
+                fact: 'Sampah elektronik hanya mencakup 2% dari volume sampah global, tetapi menyumbang 70% dari limbah beracun.',
+                time: 'Sangat sulit/Tidak terurai secara alami',
+                color: 'from-red-500 to-rose-600'
+            }
+        ];
+
+        const GAME_ITEMS = [
+            { name: 'Botol Plastik Bekas', icon: '🥤', category: 'plastic', explanation: 'Botol plastik adalah bahan polimer sintetis yang wajib masuk tempat sampah plastik (Biru) agar bisa dicacah kembali menjadi serat dacron atau botol baru.' },
+            { name: 'Kulit Pisang', icon: '🍌', category: 'organic', explanation: 'Kulit pisang adalah sampah organik (Hijau) yang mudah membusuk. Sangat baik untuk dijadikan bahan baku pembuatan pupuk kompos tanaman.' },
+            { name: 'Kertas Ujian Bekas', icon: '📄', category: 'paper', explanation: 'Kertas terbuat dari selulosa kayu tanaman. Kertas harus dipisahkan ke wadah kertas (Kuning) untuk diproses menjadi bubur kertas daur ulang.' },
+            { name: 'Baterai Bekas HP/Jam', icon: '🔋', category: 'ewaste', explanation: 'Baterai mengandung zat kimia beracun dan logam berat berbahaya. Wajib masuk tempat sampah elektronik (Merah) agar tidak mencemari tanah sekolah!' },
+            { name: 'Kaleng Soda Aluminium', icon: '🥫', category: 'metal', explanation: 'Kaleng minuman ringan terbuat dari aluminium berkualitas tinggi. Masukkan ke tong sampah logam/kaleng (Abu-abu) karena nilai ekonomis daur ulangnya sangat tinggi!' }
+        ];
+
+        let appState = {
+            user: null, // Berisi detail user terdaftar lokal
+            leaderboard: [], // Array real-time peringkat dari awan
+            userId: null // UID Firebase terautentikasi
+        };
+
+        let confirmCallback = null;
+        let selectedAvatarId = 'panda';
+        let activeEduTabId = 'plastic';
+        let currentGameItem = null;
+
+        function showNotification(title, message, type = 'info') {
+            const modal = document.getElementById('alertModal');
+            const content = document.getElementById('alertModalContent');
+            const iconArea = document.getElementById('alertIconArea');
+            
+            document.getElementById('alertTitle').innerText = title;
+            document.getElementById('alertMessage').innerText = message;
+
+            if (type === 'success') {
+                iconArea.className = "w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl";
+                iconArea.innerHTML = "🎉";
+            } else if (type === 'error') {
+                iconArea.className = "w-16 h-16 bg-red-100 text-red-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl";
+                iconArea.innerHTML = "❌";
+            } else {
+                iconArea.className = "w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-3 text-2xl";
+                iconArea.innerHTML = "🔔";
+            }
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
+
+        function closeAlertModal() {
+            const modal = document.getElementById('alertModal');
+            const content = document.getElementById('alertModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function showConfirmModal(title, message, onConfirm) {
+            const modal = document.getElementById('confirmModal');
+            const content = document.getElementById('confirmModalContent');
+            
+            document.getElementById('confirmTitle').innerText = title;
+            document.getElementById('confirmMessage').innerText = message;
+            
+            confirmCallback = onConfirm;
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 50);
+        }
+
+        function closeConfirmModal(isConfirmed) {
+            const modal = document.getElementById('confirmModal');
+            const content = document.getElementById('confirmModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                if (isConfirmed && confirmCallback) {
+                    confirmCallback();
+                }
+                confirmCallback = null;
+            }, 300);
+        }
+
+        async function loadDatabaseAndAuth() {
+            if (!isFirebaseInitialized) {
+                updateCloudBadgeUI(false);
+                document.getElementById('cloudLoadingSpinner').classList.add('hidden');
+                showNotification("Koneksi Gagal", "Sistem Awan gagal diinisialisasi. Aplikasi berjalan dalam mode demo terbatas.", "error");
+                initAvatarPicker();
+                document.getElementById('loginSection').classList.remove('hidden');
+                return;
+            }
+
+            try {
+                // RULE 3 - Custom token priority, then anonymous auth
+                let userCredential;
+                if (initialAuthToken) {
+                    userCredential = await signInWithCustomToken(auth, initialAuthToken);
+                } else {
+                    userCredential = await signInAnonymously(auth);
+                }
+
+                appState.userId = userCredential.user.uid;
+                updateCloudBadgeUI(true);
+
+                // Tarik data leaderboard global secara real-time
+                subscribeToLeaderboard();
+
+                // Periksa data pendaftaran lokal
+                const storedUser = localStorage.getItem('eco_school_user_real');
+                if (storedUser) {
+                    appState.user = JSON.parse(storedUser);
+                    // Pastikan UID lokal selaras dengan UID Cloud yang aktif
+                    appState.user.uid = appState.userId;
+                    
+                    // Tarik data terbaru dari awan jika sudah pernah ada, jika tidak, dorong data lokal ke awan
+                    const cloudDoc = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', appState.userId));
+                    if (cloudDoc.exists()) {
+                        appState.user = cloudDoc.data();
+                    } else {
+                        await syncUserToCloudAndLocal();
+                    }
+                    showDashboard();
+                } else {
+                    initAvatarPicker();
+                    document.getElementById('loginSection').classList.remove('hidden');
+                }
+            } catch (err) {
+                console.error("Kesalahan otentikasi Firebase:", err);
+                updateCloudBadgeUI(false);
+                showNotification("Gagal Masuk", "Tidak dapat terhubung secara aman dengan awan. Silakan muat ulang halaman.", "error");
+            } finally {
+                document.getElementById('cloudLoadingSpinner').classList.add('hidden');
+            }
+        }
+
+        function updateCloudBadgeUI(isOnline) {
+            const statusBadge = document.getElementById('cloudStatusBadge');
+            if (isOnline) {
+                statusBadge.className = "text-[9px] font-bold bg-green-100 text-green-800 px-2 py-1 rounded-full flex items-center gap-1";
+                statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-green-500 animate-ping"></span> Real-time Terhubung`;
+            } else {
+                statusBadge.className = "text-[9px] font-bold bg-red-100 text-red-800 px-2 py-1 rounded-full flex items-center gap-1";
+                statusBadge.innerHTML = `<span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Offline / Lokal`;
+            }
+        }
+
+        function subscribeToLeaderboard() {
+            if (!isFirebaseInitialized || !appState.userId) return;
+
+            // RULE 1: Menggunakan path aman dan terstandar
+            const leaderboardCollectionPath = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+
+            // Listening real-time tanpa query kompleks (RULE 2)
+            onSnapshot(leaderboardCollectionPath, (snapshot) => {
+                const results = [];
+                snapshot.forEach((doc) => {
+                    results.push(doc.data());
+                });
+
+                // Urutkan peringkat di memori JavaScript berdasarkan poin tertinggi
+                results.sort((a, b) => b.points - a.points);
+                
+                appState.leaderboard = results;
+                renderLeaderboard();
+                updateGlobalStatsUI();
+            }, (error) => {
+                console.error("Gagal berlangganan data leaderboard:", error);
+                updateCloudBadgeUI(false);
+            });
+        }
+
+        async function syncUserToCloudAndLocal() {
+            if (!appState.user) return;
+
+            // Simpan backup lokal
+            localStorage.setItem('eco_school_user_real', JSON.stringify(appState.user));
+
+            // RULE 3: Guard Firestore operations
+            if (isFirebaseInitialized && auth.currentUser) {
+                // RULE 1: Path terstruktur
+                const userDocPath = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', appState.userId);
+
+                try {
+                    await setDoc(userDocPath, {
+                        userId: appState.userId,
+                        name: appState.user.name,
+                        class: appState.user.class,
+                        points: appState.user.points,
+                        avatar: appState.user.avatarEmoji,
+                        completedDates: appState.user.completedDates || [],
+                        streak: appState.user.streak || 1,
+                        lastActiveDate: appState.user.lastActiveDate,
+                        unlockedBadges: appState.user.unlockedBadges || []
+                    }, { merge: true });
+                } catch (err) {
+                    console.error("Gagal sinkronisasi data pengguna ke awan:", err);
+                }
+            }
+        }
+
+        function initAvatarPicker() {
+            const container = document.getElementById('avatarPicker');
+            container.innerHTML = '';
+            AVATARS.forEach(av => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.onclick = () => selectAvatar(av.id);
+                btn.className = `p-3 rounded-2xl text-2xl flex flex-col items-center gap-1 border-2 transition-all duration-200 ${
+                    selectedAvatarId === av.id 
+                    ? 'border-emerald-500 bg-emerald-50 scale-105 shadow-inner' 
+                    : 'border-slate-100 hover:border-slate-300 hover:bg-slate-50'
+                }`;
+                btn.id = `avatar-opt-${av.id}`;
+                btn.innerHTML = `
+                    <span>${av.emoji}</span>
+                    <span class="text-[8px] font-bold text-slate-500">${av.name}</span>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectAvatar(id) {
+            selectedAvatarId = id;
+            initAvatarPicker();
+            playSound('success');
+        }
+
+        async function handleLogin(e) {
+            e.preventDefault();
+            const nameVal = document.getElementById('inputName').value.trim();
+            const classVal = document.getElementById('inputClass').value;
+            const chosenAvatar = AVATARS.find(a => a.id === selectedAvatarId);
+
+            if (!nameVal || !classVal) return;
+
+            // Membangun payload siswa baru
+            appState.user = {
+                uid: appState.userId || "local-temporary-id",
+                name: nameVal,
+                class: classVal,
+                avatarId: selectedAvatarId,
+                avatarEmoji: chosenAvatar.emoji,
+                points: 0,
+                activeDays: 1, 
+                completedDates: [getTodayDateString()],
+                lastActiveDate: getTodayDateString(),
+                todayChallenges: [],
+                weeklyMissionClaimed: false,
+                streak: 1,
+                lastCalculatedStreakDate: getTodayDateString(),
+                unlockedBadges: []
+            };
+
+            await syncUserToCloudAndLocal();
+            playSound('badge');
+            showDashboard();
+            triggerConfetti();
+        }
+
+        function requestLogout() {
+            showConfirmModal(
+                'Keluar Aplikasi',
+                'Apakah Anda yakin ingin keluar? Progress Anda tetap aman tersimpan di awan sekolah.',
+                () => {
+                    appState.user = null;
+                    localStorage.removeItem('eco_school_user_real');
+                    document.getElementById('dashboardSection').classList.add('hidden');
+                    document.getElementById('headerUserWidget').classList.add('hidden');
+                    document.getElementById('loginSection').classList.remove('hidden');
+                    initAvatarPicker();
+                    document.getElementById('inputName').value = '';
+                    document.getElementById('inputClass').value = '';
+                }
+            );
+        }
+
+        // === WAKTU & AKTIVITAS ===
+        function getTodayDateString() {
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const day = String(today.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
+        }
+
+        async function checkNewDay() {
+            if (!appState.user) return;
+            const todayStr = getTodayDateString();
+            
+            if (appState.user.lastActiveDate !== todayStr) {
+                const yesterday = new Date();
+                yesterday.setDate(yesterday.getDate() - 1);
+                const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+                if (appState.user.completedDates.includes(yesterdayStr)) {
+                    appState.user.streak += 1;
+                } else {
+                    appState.user.streak = 1;
+                }
+
+                appState.user.todayChallenges = [];
+                
+                if (!appState.user.completedDates.includes(todayStr)) {
+                    appState.user.completedDates.push(todayStr);
+                    appState.user.activeDays = appState.user.completedDates.length;
+                }
+
+                checkStreakBonuses(appState.user.streak);
+                appState.user.lastActiveDate = todayStr;
+                await syncUserToCloudAndLocal();
+            }
+        }
+
+        function checkStreakBonuses(currentStreak) {
+            let bonusPoints = 0;
+            let msg = '';
+            
+            if (currentStreak === 7) {
+                bonusPoints = 5;
+                msg = "Konsistensi Luar Biasa! 7 Hari Beruntun Menjaga Kebersihan! (+5 Poin Bonus)";
+            } else if (currentStreak === 14) {
+                bonusPoints = 10;
+                msg = "Hebat Sekali! 14 Hari Beruntun Menjaga Kebersihan! (+10 Poin Bonus)";
+            } else if (currentStreak === 30) {
+                bonusPoints = 25;
+                msg = "Legenda Kebersihan Sekolah! 30 Hari Beruntun Menjaga Kebersihan! (+25 Poin Bonus)";
+            }
+
+            if (bonusPoints > 0) {
+                appState.user.points += bonusPoints;
+                triggerConfetti();
+                playSound('badge');
+                showNotification("Bonus Streak!", msg, "success");
+            }
+        }
+
+        // === SELEKSI LEVEL & BADGES ===
+        function getLevelInfo(points) {
+            if (points <= 20) return { title: 'Eco Seedling 🌱', icon: '🌱', min: 0, max: 20 };
+            if (points <= 50) return { title: 'Eco Helper 🌿', icon: '🌿', min: 21, max: 50 };
+            if (points <= 100) return { title: 'Eco Guardian 🌳', icon: '🌳', min: 51, max: 100 };
+            if (points <= 200) return { title: 'Eco Champion 🏆', icon: '🏆', min: 101, max: 200 };
+            return { title: 'Eco Legend 👑', icon: '👑', min: 201, max: 9999 };
+        }
+
+        const BADGES_LIST = [
+            { id: 'starter', name: 'Pemula Hijau', icon: '🌱', desc: 'Selesaikan tantangan harian pertamamu.', check: (u) => u.points >= 1 },
+            { id: 'recycle_king', name: 'Raja Daur Ulang', icon: '♻️', desc: 'Capai 50 poin atau lebih dari aksi pemilahan.', check: (u) => u.points >= 50 },
+            { id: 'cleaner', name: 'Penjaga Kebersihan', icon: '🧹', desc: 'Aktif menjaga kebersihan selama 7 hari.', check: (u) => u.activeDays >= 7 },
+            { id: 'hero', name: 'Pahlawan Lingkungan', icon: '🌍', desc: 'Menembus batas level Eco Champion (100+ Poin).', check: (u) => u.points >= 101 },
+            { id: 'legend', name: 'Eco Legend', icon: '👑', desc: 'Menjadi teladan tertinggi dengan 201+ Poin.', check: (u) => u.points >= 201 }
+        ];
+
+        async function checkBadgeUnlocks() {
+            if (!appState.user) return;
+            
+            if (!appState.user.unlockedBadges) {
+                appState.user.unlockedBadges = [];
+            }
+
+            let newlyUnlocked = false;
+            for (let badge of BADGES_LIST) {
+                if (badge.check(appState.user) && !appState.user.unlockedBadges.includes(badge.id)) {
+                    appState.user.unlockedBadges.push(badge.id);
+                    newlyUnlocked = true;
+                    showBadgeModal(badge);
+                }
+            }
+
+            if (newlyUnlocked) {
+                await syncUserToCloudAndLocal();
+            }
+        }
+
+        function showBadgeModal(badge) {
+            document.getElementById('modalBadgeName').innerText = badge.name;
+            document.getElementById('modalBadgeDesc').innerText = badge.desc;
+            const iconArea = document.getElementById('badgeModalContent').firstElementChild;
+            iconArea.innerText = badge.icon;
+            
+            const modal = document.getElementById('badgeModal');
+            const content = document.getElementById('badgeModalContent');
+            
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                content.classList.remove('scale-95', 'opacity-0');
+                content.classList.add('scale-100', 'opacity-100');
+            }, 50);
+
+            playSound('badge');
+            triggerConfetti();
+        }
+
+        function closeBadgeModal() {
+            const modal = document.getElementById('badgeModal');
+            const content = document.getElementById('badgeModalContent');
+            content.classList.remove('scale-100', 'opacity-100');
+            content.classList.add('scale-95', 'opacity-0');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function showDashboard() {
+            document.getElementById('loginSection').classList.add('hidden');
+            document.getElementById('dashboardSection').classList.remove('hidden');
+            document.getElementById('headerUserWidget').classList.remove('hidden');
+            
+            checkNewDay(); 
+            updateDashboardUI();
+        }
+
+        function updateDashboardUI() {
+            if (!appState.user) return;
+
+            const u = appState.user;
+
+            document.getElementById('userAvatar').src = `data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" viewBox="0 0 100 100"><rect width="100" height="100" fill="%23dcfce7"/><text x="50" y="65" font-size="55" text-anchor="middle">${u.avatarEmoji}</text></svg>`;
+            document.getElementById('headerUserName').innerText = u.name;
+            document.getElementById('headerUserClass').innerText = `Kelas ${u.class}`;
+            
+            document.getElementById('welcomeUserMessage').innerText = `Selamat datang, ${u.name}! Mari jaga kebersihan sekolah hari ini.`;
+
+            document.getElementById('statPoints').innerText = `${u.points} Pts`;
+            document.getElementById('statActiveDays').innerText = `${u.activeDays} Hari`;
+            document.getElementById('statWeeklyProgress').innerText = u.weeklyMissionClaimed ? 'Selesai ✨' : 'Belum Selesai';
+
+            const levelInfo = getLevelInfo(u.points);
+            document.getElementById('statLevel').innerText = levelInfo.title;
+            document.getElementById('userLevelBadgeMini').innerText = levelInfo.icon;
+            
+            let percent = 0;
+            if (levelInfo.max === 9999) {
+                percent = 100;
+                document.getElementById('nextLevelText').innerText = "Level Maksimal Tercapai! 👑";
+            } else {
+                const range = levelInfo.max - levelInfo.min;
+                const progress = u.points - levelInfo.min;
+                percent = Math.min(100, Math.max(0, (progress / range) * 100));
+                document.getElementById('nextLevelText').innerText = `${levelInfo.max - u.points + 1} poin menuju level berikutnya`;
+            }
+            document.getElementById('levelProgressBar').style.width = `${percent}%`;
+
+            const targetMonth = 150;
+            const targetPercent = Math.min(100, (u.points / targetMonth) * 100);
+            document.getElementById('monthlyProgressText').innerText = `${u.points} / ${targetMonth} Poin`;
+            document.getElementById('monthlyProgressBar').style.width = `${targetPercent}%`;
+
+            renderChallenges();
+            renderCalendar();
+            renderBadges();
+            renderEduTabs();
+            renderWeeklyMissionButton();
+
+            checkBadgeUnlocks();
+        }
+
+        function renderChallenges() {
+            const listContainer = document.getElementById('challengesList');
+            listContainer.innerHTML = '';
+
+            const u = appState.user;
+            const completedCount = u.todayChallenges ? u.todayChallenges.length : 0;
+            document.getElementById('dailyLimitIndicator').innerText = `${completedCount} / 5 Diselesaikan`;
+
+            CHALLENGES_TEMPLATE.forEach(ch => {
+                const isCompleted = u.todayChallenges && u.todayChallenges.includes(ch.id);
+                
+                const card = document.createElement('div');
+                card.className = `flex items-center justify-between p-4 rounded-2xl border transition-all ${
+                    isCompleted 
+                    ? 'bg-green-50 border-green-200' 
+                    : 'bg-white border-slate-100 hover:border-slate-200'
+                }`;
+
+                card.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <button id="toggle-ch-${ch.id}" class="w-7 h-7 rounded-lg border-2 flex items-center justify-center transition-all ${
+                            isCompleted 
+                            ? 'bg-emerald-500 border-emerald-500 text-white' 
+                            : 'border-slate-300 hover:border-emerald-500 bg-white'
+                        }">
+                            ${isCompleted ? '<i class="fa-solid fa-check text-sm"></i>' : ''}
+                        </button>
+                        <span class="text-xs md:text-sm font-semibold ${isCompleted ? 'text-green-800 line-through' : 'text-slate-700'}">${ch.text}</span>
+                    </div>
+                    <span class="text-xs font-bold ${isCompleted ? 'text-green-600' : 'text-slate-400'}">+1 Poin</span>
+                `;
+                listContainer.appendChild(card);
+
+                // Event listener
+                document.getElementById(`toggle-ch-${ch.id}`).onclick = () => toggleChallenge(ch.id);
+            });
+        }
+
+        async function toggleChallenge(id) {
+            const u = appState.user;
+            const todayStr = getTodayDateString();
+
+            if (!u.completedDates.includes(todayStr)) {
+                u.completedDates.push(todayStr);
+                u.activeDays = u.completedDates.length;
+            }
+
+            if (!u.todayChallenges) u.todayChallenges = [];
+
+            if (u.todayChallenges.includes(id)) {
+                u.todayChallenges = u.todayChallenges.filter(cid => cid !== id);
+                u.points = Math.max(0, u.points - 1);
+                playSound('fail');
+            } else {
+                if (u.todayChallenges.length >= 5) {
+                    showNotification('Batas Tercapai', 'Batas maksimal tantangan harian adalah 5 poin per hari!', 'error');
+                    return;
+                }
+                u.todayChallenges.push(id);
+                u.points += 1;
+                playSound('success');
+            }
+
+            await syncUserToCloudAndLocal();
+            updateDashboardUI();
+        }
+
+        function renderCalendar() {
+            const daysContainer = document.getElementById('calendarDays');
+            daysContainer.innerHTML = '';
+
+            const today = new Date();
+            const currentYear = today.getFullYear();
+            const currentMonthIdx = today.getMonth();
+
+            const monthNames = [
+                'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+                'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+            ];
+            document.getElementById('calendarMonth').innerText = `${monthNames[currentMonthIdx]} ${currentYear}`;
+            document.getElementById('activeStreak').innerText = `Streak: ${appState.user.streak} Hari 🔥`;
+
+            const firstDayOfMonth = new Date(currentYear, currentMonthIdx, 1).getDay();
+            const totalDaysInMonth = new Date(currentYear, currentMonthIdx + 1, 0).getDate();
+
+            for (let i = 0; i < firstDayOfMonth; i++) {
+                const emptyCell = document.createElement('div');
+                daysContainer.appendChild(emptyCell);
+            }
+
+            for (let d = 1; d <= totalDaysInMonth; d++) {
+                const dateStr = `${currentYear}-${String(currentMonthIdx + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+                const isCompleted = appState.user.completedDates.includes(dateStr);
+                const isToday = d === today.getDate();
+
+                const dayCell = document.createElement('div');
+                dayCell.className = `h-9 flex flex-col items-center justify-center rounded-lg text-xs font-bold transition-all relative ${
+                    isCompleted 
+                    ? 'bg-green-500 text-white shadow-sm' 
+                    : isToday 
+                    ? 'bg-slate-200 text-slate-800 border-2 border-slate-400' 
+                    : 'bg-slate-100 text-slate-400'
+                }`;
+
+                dayCell.innerHTML = `
+                    <span>${d}</span>
+                    ${isCompleted ? '<span class="text-[8px] absolute bottom-0.5"><i class="fa-solid fa-leaf"></i></span>' : ''}
+                `;
+                dayCell.title = isCompleted ? `Aktif menjaga kebersihan pada ${d} ${monthNames[currentMonthIdx]}` : `Belum terisi`;
+                daysContainer.appendChild(dayCell);
+            }
+        }
+
+        function renderBadges() {
+            const container = document.getElementById('badgesContainer');
+            container.innerHTML = '';
+
+            const u = appState.user;
+            const unlocked = u.unlockedBadges || [];
+
+            BADGES_LIST.forEach(b => {
+                const isUnlocked = unlocked.includes(b.id);
+                const badgeDiv = document.createElement('div');
+                badgeDiv.className = `flex flex-col items-center text-center p-2 rounded-xl transition-all ${
+                    isUnlocked 
+                    ? 'bg-gradient-to-tr from-yellow-50 to-amber-100 border border-yellow-200 text-slate-800' 
+                    : 'bg-slate-50 border border-slate-100 text-slate-300 opacity-60'
+                }`;
+                badgeDiv.title = `${b.name}: ${b.desc} (${isUnlocked ? 'Terbuka' : 'Terkunci'})`;
+
+                badgeDiv.innerHTML = `
+                    <span class="text-2xl filter ${isUnlocked ? '' : 'grayscale'} mb-1">${b.icon}</span>
+                    <span class="text-[9px] font-bold truncate w-full">${b.name}</span>
+                `;
+                container.appendChild(badgeDiv);
+            });
+        }
+
+        function renderLeaderboard() {
+            const container = document.getElementById('leaderboardList');
+            container.innerHTML = '';
+
+            // Hanya tampilkan siswa yang memiliki skor > 0
+            const activeCompetitors = appState.leaderboard.filter(member => (member.points || 0) > 0);
+
+            if (activeCompetitors.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-8 text-slate-400 text-xs">
+                        <i class="fa-solid fa-user-slash text-3xl mb-2 block"></i>
+                        Papan peringkat kosong. Dapatkan poin pertama untuk memulai kompetisi!
+                    </div>
+                `;
+                document.getElementById('kingMessage').classList.add('hidden');
+                return;
+            }
+
+            // Temukan peringkat saya
+            const myPosIndex = activeCompetitors.findIndex(item => item.userId === appState.userId);
+            const kingMsgBox = document.getElementById('kingMessage');
+            if (myPosIndex === 0) {
+                kingMsgBox.classList.remove('hidden');
+            } else {
+                kingMsgBox.classList.add('hidden');
+            }
+
+            activeCompetitors.forEach((member, index) => {
+                const rank = index + 1;
+                let badgeRank = `${rank}`;
+                let rankBg = 'bg-white hover:bg-slate-50';
+                const isMe = member.userId === appState.userId;
+
+                if (rank === 1) {
+                    badgeRank = '🥇';
+                    rankBg = 'bg-yellow-50/80 border border-yellow-200';
+                } else if (rank === 2) {
+                    badgeRank = '🥈';
+                    rankBg = 'bg-slate-50/80 border border-slate-200';
+                } else if (rank === 3) {
+                    badgeRank = '🥉';
+                    rankBg = 'bg-amber-50/50 border border-amber-100';
+                }
+
+                if (isMe) {
+                    rankBg = 'bg-gradient-to-r from-emerald-500/10 to-teal-500/10 border-2 border-emerald-500 animate-pulse';
+                }
+
+                const item = document.createElement('div');
+                item.className = `flex items-center justify-between p-3 rounded-2xl transition-all ${rankBg}`;
+                item.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold w-6 text-center">${badgeRank}</span>
+                        <div class="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-md">
+                            ${member.avatar || '🌱'}
+                        </div>
+                        <div>
+                            <span class="text-xs font-bold text-slate-800 ${isMe ? 'text-emerald-900 font-extrabold' : ''}">${member.name}</span>
+                            <span class="text-[9px] text-slate-500 block">Kelas ${member.class} ${isMe ? '(Kamu)' : ''}</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="text-xs font-black text-emerald-700">${member.points} Pts</span>
+                        
+                        <!-- Tombol Hapus Entry Khusus Admin -->
+                        <button id="del-btn-${member.userId}" class="p-1 px-2 hover:bg-red-50 text-slate-300 hover:text-red-500 rounded-lg text-[10px] transition-colors" title="Hapus Dari Peringkat">
+                            <i class="fa-solid fa-trash-can"></i>
+                        </button>
+                    </div>
+                `;
+                container.appendChild(item);
+
+                // Event listener khusus untuk tombol hapus
+                document.getElementById(`del-btn-${member.userId}`).onclick = () => requestDeleteEntry(member.userId, member.name);
+            });
+        }
+
+        function updateGlobalStatsUI() {
+            const list = appState.leaderboard;
+            const totalStudents = list.length;
+            
+            let totalPoints = 0;
+            list.forEach(m => totalPoints += (m.points || 0));
+
+            const activeActions = Math.round(totalPoints * 1.3);
+            const rubbishWeight = (totalPoints * 0.25).toFixed(1);
+
+            document.getElementById('globalTotalPoints').innerText = `${totalPoints.toLocaleString('id-ID')} Poin`;
+            document.getElementById('globalActiveStudents').innerText = `${totalStudents} Siswa`;
+            document.getElementById('globalActiveAksi').innerText = `${activeActions} Aksi`;
+            document.getElementById('globalWeight').innerText = `${rubbishWeight} Kg`;
+
+            const targetAcc = 1000;
+            const percentage = Math.min(100, Math.round((totalPoints / targetAcc) * 100));
+            document.getElementById('accreditationPercentage').innerText = `${percentage}%`;
+            document.getElementById('accreditationBar').style.width = `${percentage}%`;
+        }
+
+        function renderWeeklyMissionButton() {
+            const btn = document.getElementById('claimMissionBtn');
+            const u = appState.user;
+
+            if (u.weeklyMissionClaimed) {
+                btn.disabled = true;
+                btn.innerText = 'Sudah Diklaim';
+                btn.className = 'bg-emerald-100 text-emerald-700 font-bold text-[10px] px-3 py-1 rounded-lg cursor-not-allowed';
+            } else {
+                btn.disabled = false;
+                btn.innerText = 'Klaim Selesai';
+                btn.className = 'bg-amber-500 hover:bg-amber-600 text-white font-bold text-[10px] px-3 py-1 rounded-lg transition-colors shadow-sm';
+            }
+        }
+
+        async function completeWeeklyMission() {
+            const u = appState.user;
+            if (u.weeklyMissionClaimed) return;
+
+            u.points += 10;
+            u.weeklyMissionClaimed = true;
+            await syncUserToCloudAndLocal();
+            updateDashboardUI();
+            
+            triggerConfetti();
+            playSound('badge');
+            showNotification('Misi Khusus Selesai!', 'Selamat! Misi khusus berhasil diselesaikan, Anda mendapatkan +10 Poin tambahan! 🎉', 'success');
+        }
+
+        function renderEduTabs() {
+            const tabsContainer = document.getElementById('eduTabs');
+            tabsContainer.innerHTML = '';
+
+            EDUCATION_BOOK.forEach(cat => {
+                const isActive = cat.id === activeEduTabId;
+                const btn = document.createElement('button');
+                btn.id = `edu-tab-${cat.id}`;
+                btn.className = `px-4 py-2 rounded-xl text-xs font-bold whitespace-nowrap transition-all ${
+                    isActive 
+                    ? 'bg-emerald-500 text-white shadow-md' 
+                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                }`;
+                btn.innerHTML = `<span>${cat.icon}</span> <span class="ml-1">${cat.name}</span>`;
+                tabsContainer.appendChild(btn);
+
+                document.getElementById(`edu-tab-${cat.id}`).onclick = () => selectEduTab(cat.id);
+            });
+
+            renderEduContent();
+        }
+
+        function selectEduTab(id) {
+            activeEduTabId = id;
+            renderEduTabs();
+            playSound('success');
+        }
+
+        function renderEduContent() {
+            const contentContainer = document.getElementById('eduContent');
+            const cat = EDUCATION_BOOK.find(c => c.id === activeEduTabId);
+
+            contentContainer.innerHTML = `
+                <div class="flex-shrink-0 w-24 h-24 bg-gradient-to-tr ${cat.color} rounded-3xl flex items-center justify-center text-5xl shadow-lg relative overflow-hidden">
+                    <span class="relative z-10 animate-pulse">${cat.icon}</span>
+                    <div class="absolute inset-0 bg-white/20 transform rotate-12 scale-150"></div>
+                </div>
+                <div class="flex-1 space-y-2 text-slate-700">
+                    <h4 class="text-md font-extrabold text-slate-800 flex items-center gap-2">
+                        Buku Hijau: ${cat.name}
+                    </h4>
+                    <p class="text-xs leading-relaxed text-slate-600">${cat.desc}</p>
+                    <div class="p-3 bg-white/80 rounded-xl border border-emerald-100/60 text-xs">
+                        <strong class="text-emerald-700 block mb-0.5"><i class="fa-solid fa-lightbulb"></i> Fakta Menarik:</strong>
+                        <span class="italic">"${cat.fact}"</span>
+                    </div>
+                    <div class="flex items-center gap-2 text-xs font-semibold bg-emerald-100/50 text-emerald-800 px-3 py-2 rounded-xl w-fit">
+                        <i class="fa-solid fa-hourglass-half text-emerald-600"></i>
+                        <span>Lama Waktu Terurai: <span class="font-extrabold underline">${cat.time}</span></span>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initWasteGame() {
+            const expl = document.getElementById('gameExplanationBox');
+            expl.classList.add('hidden');
+
+            const randIndex = Math.floor(Math.random() * GAME_ITEMS.length);
+            currentGameItem = GAME_ITEMS[randIndex];
+
+            const objArea = document.getElementById('gameObjectArea');
+            objArea.innerHTML = `
+                <div class="w-16 h-16 bg-sky-100 text-sky-800 rounded-full flex items-center justify-center text-4xl shadow-inner mb-2 animate-bounce">
+                    ${currentGameItem.icon}
+                </div>
+                <div class="text-sm font-extrabold text-slate-800">${currentGameItem.name}</div>
+                <div class="text-[10px] text-sky-600 mt-1 font-medium">Ke mana sampah ini harus dimasukkan?</div>
+            `;
+
+            const binsContainer = document.getElementById('wasteBinsContainer');
+            binsContainer.innerHTML = '';
+
+            const bins = [
+                { category: 'organic', name: 'Organik', color: 'bg-green-600 text-white hover:bg-green-700', icon: '🟢' },
+                { category: 'plastic', name: 'Plastik', color: 'bg-blue-600 text-white hover:bg-blue-700', icon: '🔵' },
+                { category: 'paper', name: 'Kertas', color: 'bg-yellow-500 text-slate-900 hover:bg-yellow-600', icon: '🟡' },
+                { category: 'metal', name: 'Logam/Kaleng', color: 'bg-slate-500 text-white hover:bg-slate-600', icon: '⚪' },
+                { category: 'ewaste', name: 'E-Waste', color: 'bg-red-600 text-white hover:bg-red-700', icon: '🔴' }
+            ];
+
+            bins.forEach((bin, idx) => {
+                const btn = document.createElement('button');
+                btn.id = `waste-bin-${idx}`;
+                btn.className = `p-3 rounded-2xl flex flex-col items-center justify-center text-center transition-all ${bin.color} shadow-sm hover:shadow-md transform hover:-translate-y-1`;
+                btn.innerHTML = `
+                    <span class="text-lg">${bin.icon}</span>
+                    <span class="text-[9px] font-bold uppercase tracking-wider block mt-1">${bin.name}</span>
+                `;
+                binsContainer.appendChild(btn);
+
+                document.getElementById(`waste-bin-${idx}`).onclick = () => submitWasteChoice(bin.category);
+            });
+        }
+
+        async function submitWasteChoice(chosenCategory) {
+            const explBox = document.getElementById('gameExplanationBox');
+            explBox.classList.remove('hidden');
+
+            if (chosenCategory === currentGameItem.category) {
+                appState.user.points += 2;
+                await syncUserToCloudAndLocal();
+                updateDashboardUI();
+                playSound('success');
+                triggerConfetti();
+
+                explBox.className = "mt-3 p-3 bg-green-50 text-green-800 rounded-xl text-xs border border-green-200 animate-pulse";
+                explBox.innerHTML = `
+                    <div class="flex gap-2">
+                        <span class="text-lg">✅</span>
+                        <div>
+                            <strong class="block text-green-900">Hebat, Pilihanmu Benar! (+2 Poin)</strong>
+                            <p class="mt-0.5">${currentGameItem.explanation}</p>
+                        </div>
+                    </div>
+                `;
+            } else {
+                playSound('fail');
+                explBox.className = "mt-3 p-3 bg-red-50 text-red-800 rounded-xl text-xs border border-red-200";
+                explBox.innerHTML = `
+                    <div class="flex gap-2">
+                        <span class="text-lg">❌</span>
+                        <div>
+                            <strong class="block text-red-900">Kurang Tepat, Coba Lagi!</strong>
+                            <p class="mt-0.5">${currentGameItem.explanation}</p>
+                        </div>
+                    </div>
+                `;
+            }
+
+            setTimeout(() => {
+                initWasteGame();
+            }, 6000);
+        }
+
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+
+        function playSound(type) {
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+
+                if (type === 'success') {
+                    osc.frequency.setValueAtTime(523.25, audioCtx.currentTime); 
+                    osc.frequency.setValueAtTime(659.25, audioCtx.currentTime + 0.1); 
+                    osc.frequency.setValueAtTime(783.99, audioCtx.currentTime + 0.2); 
+                    gain.gain.setValueAtTime(0.1, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.4);
+                } else if (type === 'fail') {
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+                    osc.frequency.linearRampToValueAtTime(80, audioCtx.currentTime + 0.3);
+                    gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+                    osc.start();
+                    osc.stop(audioCtx.currentTime + 0.3);
+                } else if (type === 'badge') {
+                    const notes = [261.63, 329.63, 392.00, 523.25, 659.25, 783.99, 1046.50];
+                    notes.forEach((freq, idx) => {
+                        const subOsc = audioCtx.createOscillator();
+                        const subGain = audioCtx.createGain();
+                        subOsc.connect(subGain);
+                        subGain.connect(audioCtx.destination);
+                        subOsc.frequency.setValueAtTime(freq, audioCtx.currentTime + (idx * 0.08));
+                        subGain.gain.setValueAtTime(0.08, audioCtx.currentTime + (idx * 0.08));
+                        subGain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + (idx * 0.08) + 0.4);
+                        subOsc.start(audioCtx.currentTime + (idx * 0.08));
+                        subOsc.stop(audioCtx.currentTime + (idx * 0.08) + 0.4);
+                    });
+                }
+            } catch (e) {
+                console.log("Audio API belum terpicu");
+            }
+        }
+
+        const canvas = document.getElementById('confettiCanvas');
+        const ctx = canvas.getContext('2d');
+        let confetti = [];
+        let confettiActive = false;
+
+        function resizeCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+        }
+        window.addEventListener('resize', resizeCanvas);
+        resizeCanvas();
+
+        function createConfettiPiece() {
+            return {
+                x: Math.random() * canvas.width,
+                y: Math.random() * -canvas.height - 20,
+                r: Math.random() * 6 + 4,
+                d: Math.random() * canvas.height,
+                color: `hsl(${Math.random() * 360}, 90%, 60%)`,
+                tilt: Math.random() * 10 - 5,
+                tiltAngleIncremental: Math.random() * 0.07 + 0.02,
+                tiltAngle: 0
+            };
+        }
+
+        function triggerConfetti() {
+            canvas.classList.remove('hidden');
+            confetti = [];
+            for (let i = 0; i < 150; i++) {
+                confetti.push(createConfettiPiece());
+            }
+            confettiActive = true;
+            animateConfetti();
+            setTimeout(() => {
+                confettiActive = false;
+                canvas.classList.add('hidden');
+            }, 5000);
+        }
+
+        function animateConfetti() {
+            if (!confettiActive) return;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            confetti.forEach((p, idx) => {
+                p.tiltAngle += p.tiltAngleIncremental;
+                p.y += (Math.cos(p.d) + 3 + p.r / 2) / 2;
+                p.tilt = Math.sin(p.tiltAngle - idx / 3) * 15;
+
+                if (p.y > canvas.height) {
+                    confetti[idx] = createConfettiPiece();
+                    confetti[idx].y = -20;
+                }
+
+                ctx.beginPath();
+                ctx.lineWidth = p.r;
+                ctx.strokeStyle = p.color;
+                ctx.moveTo(p.x + p.tilt + p.r / 2, p.y);
+                ctx.lineTo(p.x + p.tilt, p.y + p.tilt + p.r / 2);
+                ctx.stroke();
+            });
+
+            requestAnimationFrame(animateConfetti);
+        }
+
+        function generateFallingLeaves() {
+            const container = document.getElementById('leafContainer');
+            container.innerHTML = '';
+            for (let i = 0; i < 15; i++) {
+                const leaf = document.createElement('div');
+                leaf.className = 'leaf';
+                leaf.style.left = `${Math.random() * 100}%`;
+                leaf.style.animationDelay = `${Math.random() * 12}s`;
+                leaf.style.animationDuration = `${12 + Math.random() * 10}s`;
+                const size = 15 + Math.random() * 20;
+                leaf.style.width = `${size}px`;
+                leaf.style.height = `${size}px`;
+                const hues = [100, 120, 140, 150];
+                const leafColor = `hsl(${hues[Math.floor(Math.random() * hues.length)]}, 80%, ${40 + Math.random() * 20}%)`;
+                leaf.style.background = leafColor;
+                container.appendChild(leaf);
+            }
+        }
+
+        async function requestDeleteEntry(targetUserId, targetUserName) {
+            showConfirmModal(
+                'Hapus Peringkat Siswa',
+                `Apakah Anda yakin sebagai Guru/Admin ingin menghapus siswa "${targetUserName}" dari papan peringkat sekolah secara permanen?`,
+                async () => {
+                    if (isFirebaseInitialized) {
+                        try {
+                            const userDocPath = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', targetUserId);
+                            await deleteDoc(userDocPath);
+                            showNotification('Terhapus', `Berhasil menghapus ${targetUserName} dari database awan.`, 'success');
+                            
+                            // Jika yang dihapus adalah dirinya sendiri, log out otomatis
+                            if (targetUserId === appState.userId) {
+                                localStorage.removeItem('eco_school_user_real');
+                                location.reload();
+                            }
+                        } catch (err) {
+                            console.error("Gagal menghapus entry:", err);
+                        }
+                    }
+                }
+            );
+        }
+
+        function requestResetAll() {
+            showConfirmModal(
+                'Mulai Kompetisi Baru (Reset Global)',
+                'PERINGATAN: Tindakan ini akan menghapus data pendaftaran Anda, seluruh riwayat keaktifan pribadi, dan data papan peringkat secara permanen di semua perangkat laptop lainnya. Lanjutkan?',
+                async () => {
+                    if (isFirebaseInitialized) {
+                        try {
+                            const leaderboardCollectionPath = collection(db, 'artifacts', appId, 'public', 'data', 'leaderboard');
+                            const querySnapshot = await getDocs(leaderboardCollectionPath);
+                            
+                            const deletePromises = [];
+                            querySnapshot.forEach((document) => {
+                                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'leaderboard', document.id);
+                                deletePromises.push(deleteDoc(docRef));
+                            });
+
+                            await Promise.all(deletePromises);
+                        } catch (err) {
+                            console.error("Gagal menghapus database awan:", err);
+                        }
+                    }
+
+                    localStorage.clear();
+                    location.reload();
+                }
+            );
+        }
+
+        // === BIND EVENT LISTENERS TO DOM ===
+        document.getElementById('loginForm').onsubmit = handleLogin;
+        document.getElementById('logoutBtnHeader').onclick = requestLogout;
+        document.getElementById('claimMissionBtn').onclick = completeWeeklyMission;
+        document.getElementById('resetAllCloudBtn').onclick = requestResetAll;
+        document.getElementById('closeBadgeModalBtn').onclick = closeBadgeModal;
+        document.getElementById('closeAlertBtn').onclick = closeAlertModal;
+        document.getElementById('cancelConfirmBtn').onclick = () => closeConfirmModal(false);
+
+        // === RUNTIME ONLOAD ===
+        window.addEventListener('DOMContentLoaded', () => {
+            generateFallingLeaves();
+            
+            setTimeout(() => {
+                loadDatabaseAndAuth();
+            }, 300);
+
+            const randomQuote = MOTIVATIONS[Math.floor(Math.random() * MOTIVATIONS.length)];
+            document.getElementById('dailyQuote').innerText = `"${randomQuote}"`;
+
+            initWasteGame();
+        });
+    </script>
+</body>
+</html>
